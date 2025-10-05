@@ -1,11 +1,12 @@
 import path from 'path';
 
 export default ({ env }) => {
-  const client = env('DATABASE_CLIENT', 'sqlite');
+  const client = env('DATABASE_CLIENT', 'postgres');
 
   const connections = {
     mysql: {
       connection: {
+        client: 'mysql',
         host: env('DATABASE_HOST', 'localhost'),
         port: env.int('DATABASE_PORT', 3306),
         database: env('DATABASE_NAME', 'strapi'),
@@ -24,6 +25,7 @@ export default ({ env }) => {
     },
     postgres: {
       connection: {
+        client: 'postgres',
         connectionString: env('DATABASE_URL'),
         host: env('DATABASE_HOST', 'localhost'),
         port: env.int('DATABASE_PORT', 5432),
@@ -44,6 +46,7 @@ export default ({ env }) => {
     },
     sqlite: {
       connection: {
+        client: 'sqlite',
         filename: path.join(__dirname, '..', '..', env('DATABASE_FILENAME', '.tmp/data.db')),
       },
       useNullAsDefault: true,
@@ -52,8 +55,8 @@ export default ({ env }) => {
 
   return {
     connection: {
-      client,
-      ...connections[client],
+      client: 'postgres',
+      ...connections['postgres'],
       acquireConnectionTimeout: env.int('DATABASE_CONNECTION_TIMEOUT', 60000),
     },
   };

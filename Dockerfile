@@ -1,33 +1,20 @@
-FROM oven/bun:1 AS build
-RUN apt-get update && apt-get install -y \
-  build-essential \
-  autoconf \
-  automake \
-  libz-dev \
-  libpng-dev \
-  libvips-dev \
-  && rm -rf /var/lib/apt/lists/*
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
+# Stage 1: Build with pnpm
+FROM node:20-alpine AS builder
 WORKDIR /opt/app
-COPY package.json bun.lock ./
-RUN bun install
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY pnpm-lock.yaml package.json ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN bun run build
+RUN pnpm build
 
-FROM oven/bun:1
-RUN apt-get update && apt-get install -y libvips-dev && rm -rf /var/lib/apt/lists/*
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
+# Stage 2: Lightweight runtime
+FROM node:20-alpine AS runner
 WORKDIR /opt/app
-COPY package.json bun.lock ./
-RUN bun install --production --frozen-lockfile
-COPY --from=build /opt/app/dist ./dist
-
-RUN chown -R bun:bun /opt/app
-USER bun
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY pnpm-lock.yaml package.json ./
+RUN pnpm install --prod --frozen-lockfile
+COPY --from=builder /opt/app/dist ./dist
+COPY ./server.js ./
 EXPOSE 1337
-CMD ["bun", "start"]
+CMD ["node", "server.js"]
 

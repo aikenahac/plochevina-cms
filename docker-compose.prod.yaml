@@ -2,17 +2,17 @@ services:
   plocheveenaDB:
     container_name: plocheveenaDB
     platform: linux/aarch64
+    image: postgres:14.5-alpine
     restart: unless-stopped
     env_file: .env
-    image: postgres:14.5-alpine
     environment:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
     volumes:
-      - plocheveena-data:/var/lib/postgresql/data/
+      - plocheveena-data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - "5432:5432"
     networks:
       - plocheveena
 
@@ -29,6 +29,9 @@ services:
       - "1337:1337"
     networks:
       - plocheveena
+    environment:
+      NODE_ENV: production
+
 
 volumes:
   plocheveena-data:
