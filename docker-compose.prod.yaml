@@ -1,0 +1,40 @@
+services:
+  plocheveenaDB:
+    container_name: plocheveenaDB
+    platform: linux/aarch64
+    restart: unless-stopped
+    env_file: .env
+    image: postgres:14.5-alpine
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - plocheveena-data:/var/lib/postgresql/data/
+    ports:
+      - '5432:5432'
+    networks:
+      - plocheveena
+
+  plocheveena:
+    container_name: plocheveena
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - plocheveenaDB
+    ports:
+      - "1337:1337"
+    networks:
+      - plocheveena
+
+volumes:
+  plocheveena-data:
+
+networks:
+  plocheveena:
+    name: plocheveena
+    driver: bridge
+
